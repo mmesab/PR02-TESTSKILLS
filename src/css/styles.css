@@ -1,0 +1,110 @@
+/* RESET */
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* BODY */
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f172a, #4f6a95);
+    color: #ffffff;
+    line-height: 1.6;
+    padding: 40px 20px;
+}
+
+/* HERO */
+.hero{
+    max-width: 900px;
+    margin: 0 auto 60px;
+    text-align: center;
+}
+
+.hero h1{
+    font-size: 3rem;
+    margin-bottom: 20px;
+    background: linear-gradient(to right, #38bdf8, #818cf8);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero p{
+    color: #cbd5e1;
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+/* TEST SECTION */
+.test-section{
+    max-width: 1000px;
+    margin: auto;
+}
+
+/* QUESTION CARD */
+.question{
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    backdrop-filter: blur(12px);
+    transition: 0.3s ease;
+}
+
+.question:hover{
+    transform: translateY(-4px);
+    border-color: #38bdf8;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+}
+
+/* QUESTION TITLE */
+.question h3{
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    color: #f8fafc;
+    font-weight: 600;
+}
+
+/* OPTIONS */
+.options{
+    display: grid;
+    gap: 15px;
+}
+
+/* OPTION BUTTON */
+.option{
+    background: #1e293b;
+    border: 1px solid transparent;
+    padding: 16px 18px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    color: #e2e8f0;
+    font-size: 1rem;
+}
+
+.option:hover{
+    background: #273449;
+    border-color: #38bdf8;
+    transform: translateX(5px);
+}
+
+/* ACTIVE EFFECT */
+.option:active{
+    transform: scale(0.98);
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{
+    width: 10px;
+}
+
+::-webkit-scrollbar-track{
+    background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb{
+    background: #38bdf8;
+    border-radius: 10px;
+}
