@@ -2,16 +2,20 @@
 <h2>Sistema avanzado de análisis motivacional y capacidades cognitivas</h2>
 
 <p>
-Este repositorio reúne dos herramientas modernas de evaluación personal y profesional:
+Este repositorio contiene <strong>IdentityMap Nexus 2026</strong>, un modelo moderno de evaluación personal y profesional centrado en:
 </p>
 
 <ul>
-  <li><strong>IdentityMap Nexus 2026</strong> — análisis de motivación, identidad y patrones internos.</li>
-  <li><strong>Evaluación de Inteligencias Múltiples</strong> — adaptación profesional del modelo de Gardner.</li>
+  <li>motivación interna,</li>
+  <li>identidad,</li>
+  <li>gestión emocional,</li>
+  <li>relación con el entorno,</li>
+  <li>patrones de comportamiento,</li>
+  <li>y coherencia psicométrica.</li>
 </ul>
 
 <p>
-Ambos modelos están diseñados con enfoque <strong>conductual</strong>, <strong>psicométrico</strong> y orientado a 
+El sistema está diseñado con un enfoque <strong>conductual</strong>, <strong>psicométrico</strong> y orientado a 
 <strong>coaching</strong>, <strong>RRHH</strong>, <strong>educación</strong> y <strong>desarrollo personal</strong>.
 </p>
 
@@ -19,21 +23,26 @@ Ambos modelos están diseñados con enfoque <strong>conductual</strong>, <strong
 
 <h2>📌 Contenido</h2>
 <ul>
-  <li>Documentación completa en PDF</li>
-  <li>Tests psicométricos modernos</li>
-  <li>Perfiles motivacionales y cognitivos</li>
-  <li>Escalas, validación y cálculo de resultados</li>
+  <li>Documentación completa del modelo IdentityMap Nexus 2026</li>
+  <li>Preguntas, escalas y estructura del test</li>
+  <li>Sistema de puntuación y validación psicométrica</li>
+  <li>Perfiles motivacionales y cálculo de resultados</li>
   <li>Estructura del proyecto (HTML, CSS, JS)</li>
 </ul>
 
 <hr>
 
-<h2>🚀 Uso</h2>
-<ol>
-  <li>Abrir los documentos PDF para ver el contenido completo.</li>
-  <li>Utilizar los tests como herramientas de evaluación.</li>
-  <li>Integrar los modelos en proyectos educativos o profesionales.</li>
-</ol>
+<h2>🎯 Objetivo</h2>
+<p>
+Proporcionar una herramienta clara, moderna y aplicable para:
+</p>
+<ul>
+  <li>coaching y desarrollo personal,</li>
+  <li>orientación profesional,</li>
+  <li>evaluación motivacional,</li>
+  <li>liderazgo y gestión de equipos,</li>
+  <li>proyectos educativos y formativos.</li>
+</ul>
 
 <hr>
 <h2>🙋🏻‍♀️ Colaboradoras</h2>
