@@ -6,12 +6,12 @@ Este repositorio contiene <strong>IdentityMap Nexus 2026</strong>, un modelo mod
 </p>
 
 <ul>
-  <li>motivación interna,</li>
-  <li>identidad,</li>
-  <li>gestión emocional,</li>
-  <li>relación con el entorno,</li>
-  <li>patrones de comportamiento,</li>
-  <li>y coherencia psicométrica.</li>
+  <li>motivación interna</li>
+  <li>identidad</li>
+  <li>gestión emocional</li>
+  <li>relación con el entorno</li>
+  <li>patrones de comportamiento</li>
+  <li>coherencia psicométrica</li>
 </ul>
 
 <p>
