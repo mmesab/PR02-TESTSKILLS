@@ -4,6 +4,8 @@ const preguntaTexto = document.getElementById("pregunta-texto");
 const opcionesContainer = document.getElementById("opciones-container");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
+// ¡NUEVO! Seleccionamos la barra de progreso aquí
+const progressBar = document.getElementById("progress-bar"); 
 
 // 2. ESTADO DE LA APLICACIÓN
 let currentIndex = 0; // Empezamos en la primera pregunta (id: 1, índice: 0)
@@ -26,6 +28,12 @@ function renderQuestion() {
     // Actualizar textos en el HTML
     faseTitulo.textContent = nombresFases[currentQuestion.dimension] || "Test Psicométrico";
     preguntaTexto.textContent = `Pregunta ${currentIndex + 1}: ${currentQuestion.text}`;
+
+    // ¡NUEVO! Calculamos el porcentaje y movemos la barra cada vez que se pinta una pregunta
+    const porcentaje = ((currentIndex + 1) / questions.length) * 100;
+    if (progressBar) {
+        progressBar.style.width = `${porcentaje}%`;
+    }
 
     // Limpiar botones de opciones anteriores
     opcionesContainer.innerHTML = "";
