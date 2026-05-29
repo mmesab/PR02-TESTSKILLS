@@ -4,12 +4,22 @@ const preguntaTexto = document.getElementById("pregunta-texto");
 const opcionesContainer = document.getElementById("opciones-container");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
-// ¡NUEVO! Seleccionamos la barra de progreso aquí
 const progressBar = document.getElementById("progress-bar"); 
+const errorMensaje = document.getElementById("error-mensaje"); 
 
-// 2. ESTADO DE LA APLICACIÓN
-let currentIndex = 0; // Empezamos en la primera pregunta (id: 1, índice: 0)
-let answers = [];     // Aquí guardaremos las respuestas del usuario
+// 2. ESTADO DE LA APLICACIÓN (¡ACTUALIZADO CON NIVEL 11!)
+// Intentamos recuperar las respuestas anteriores del LocalStorage. Si no hay nada, empezamos con un array vacío.
+let answers = JSON.parse(localStorage.getItem("nexus_answers_progress")) || [];
+
+// Si el usuario ya tenía respuestas guardadas, lo situamos en la siguiente pregunta disponible.
+// Por ejemplo, si respondió 3 preguntas (índices 0, 1, 2), su longitud es 3, así que currentIndex pasará a ser 3 (la cuarta pregunta).
+let currentIndex = answers.length; 
+
+// Control de seguridad: Si ya había completado todo el test, lo reiniciamos a la primera pregunta para que no falle.
+if (currentIndex >= questions.length) {
+    currentIndex = 0;
+    answers = [];
+}
 
 // Mapeo de dimensiones a nombres legibles para los títulos
 const nombresFases = {
@@ -22,6 +32,12 @@ const nombresFases = {
 
 // 3. FUNCIÓN PARA PINTAR LA PREGUNTA ACTUAL
 function renderQuestion() {
+    // Ocultamos el mensaje de error anterior si existía
+    if (errorMensaje) {
+        errorMensaje.style.display = "none";
+        errorMensaje.textContent = "";
+    }
+
     // Obtener la pregunta actual del array general
     const currentQuestion = questions[currentIndex];
 
@@ -29,7 +45,7 @@ function renderQuestion() {
     faseTitulo.textContent = nombresFases[currentQuestion.dimension] || "Test Psicométrico";
     preguntaTexto.textContent = `Pregunta ${currentIndex + 1}: ${currentQuestion.text}`;
 
-    // ¡NUEVO! Calculamos el porcentaje y movemos la barra cada vez que se pinta una pregunta
+    // Calculamos el porcentaje y movemos la barra cada vez que se pinta una pregunta
     const porcentaje = ((currentIndex + 1) / questions.length) * 100;
     if (progressBar) {
         progressBar.style.width = `${porcentaje}%`;
@@ -38,10 +54,10 @@ function renderQuestion() {
     // Limpiar botones de opciones anteriores
     opcionesContainer.innerHTML = "";
 
-    // Generar la escala del 1 al 5 como botones (según el nivel 2 del manual)
+    // Generar la escala del 1 al 5 como botones
     for (let i = 1; i <= 5; i++) {
         const button = document.createElement("button");
-        button.className = "question btn btn-outline-primary me-2"; // Clases de Bootstrap
+        button.className = "question btn btn-outline-primary me-2"; 
         button.textContent = i;
 
         // Si el usuario ya había respondido esta pregunta antes, dejamos el botón marcado
@@ -58,7 +74,7 @@ function renderQuestion() {
 
     // Controlar visibilidad del botón "Volver"
     if (currentIndex === 0) {
-        prevBtn.style.visibility = "hidden"; // Ocultar en la primera pregunta
+        prevBtn.style.visibility = "hidden"; 
     } else {
         prevBtn.style.visibility = "visible";
     }
@@ -73,14 +89,11 @@ function renderQuestion() {
 
 // 4. FUNCIÓN PARA GUARDAR LA OPCIÓN SELECCIONADA
 function selectOption(questionId, dimension, value) {
-    // Buscar si ya existía una respuesta previa para esta pregunta
     const existingAnswerIndex = answers.findIndex(a => a.questionId === questionId);
 
     if (existingAnswerIndex !== -1) {
-        // Si ya existía, actualizamos el valor
         answers[existingAnswerIndex].answer = value;
     } else {
-        // Si es nueva, la añadimos al array
         answers.push({
             questionId: questionId,
             answer: value,
@@ -88,27 +101,31 @@ function selectOption(questionId, dimension, value) {
         });
     }
 
-    // Volvemos a renderizar para que el botón seleccionado cambie de color visualmente
+    // ¡NUEVO NIVEL 11! Guardamos el progreso en tiempo real en el LocalStorage cada vez que elige una opción
+    localStorage.setItem("nexus_answers_progress", JSON.stringify(answers));
+
+    // Volvemos a renderizar para actualizar el color de los botones
     renderQuestion();
 }
 
 // 5. MANEJO DE EVENTOS DE NAVEGACIÓN (Botones Volver / Siguiente)
 nextBtn.onclick = () => {
     const currentQuestion = questions[currentIndex];
-    // Validación: Comprobar si ha respondido a la pregunta actual antes de avanzar
+    // Validación: Comprobar si ha respondido antes de avanzar
     const haRespondido = answers.some(a => a.questionId === currentQuestion.id);
 
     if (!haRespondido) {
-        alert("Por favor, selecciona una opción del 1 al 5 antes de continuar.");
-        return; // Detiene la ejecución si no está respondida
+        if (errorMensaje) {
+            errorMensaje.textContent = "⚠️ ¡Atención! Debes seleccionar una opción del 1 al 5 antes de avanzar.";
+            errorMensaje.style.display = "block"; 
+        }
+        return; 
     }
 
-    // Si todo está bien, avanzamos o finalizamos
     if (currentIndex < questions.length - 1) {
         currentIndex++;
         renderQuestion();
     } else {
-        // ¡Última pregunta completada!
         finishTest();
     }
 };
@@ -122,17 +139,19 @@ prevBtn.onclick = () => {
 
 // 6. FINALIZAR TEST Y MOSTRAR RESULTADOS
 function finishTest() {
-    // Guardar las respuestas en el LocalStorage por seguridad (Paso 11 del manual)
-    localStorage.setItem("nexus_answers", JSON.stringify(answers));
+    // Guardamos las respuestas definitivas en un almacén histórico
+    localStorage.setItem("nexus_final_results", JSON.stringify(answers));
+    
+    // ¡NUEVO NIVEL 11! Como el test ya ha terminado, borramos el progreso temporal para que la próxima vez empiece desde cero
+    localStorage.removeItem("nexus_answers_progress");
 
     // Calcular puntuaciones utilizando las lógicas del manual
     let totalScore = 0;
     let dimensionsScore = {};
 
     answers.forEach(item => {
-        totalScore += item.answer; // Suma total
+        totalScore += item.answer; 
 
-        // Suma por bloques/dimensiones
         if (!dimensionsScore[item.dimension]) {
             dimensionsScore[item.dimension] = 0;
         }
