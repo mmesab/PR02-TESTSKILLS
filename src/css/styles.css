@@ -1,4 +1,4 @@
-/* RESET
+ /*RESET*/
 *{
     margin: 0;
     padding: 0;
@@ -21,9 +21,6 @@ body{
     margin-top: 5vh;
 }
 
-.float:hover{
-    background-color: #0056b3;
-}
 
 .titulo{
     text-align: center;
@@ -84,3 +81,124 @@ body{
     background-color: #0056b3;
 }
 
+
+/* General styles */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9; /* Fondo claro */
+    color: #333; /* Texto en gris oscuro */
+}
+
+.container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; /* Ocupa toda la altura de la pantalla */
+    padding: 1rem;
+    
+}
+
+/* Imagen Nexus */
+.container-img {
+    flex: 1; /* Ocupa la mitad izquierda */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #fff;
+    
+}
+
+
+.imagen {
+    max-width: 80%; /* Ajusta el tamaño de la imagen */
+    height: auto;
+}
+
+/* Contenedor derecho */
+.derecha {
+    flex: 1; /* Ocupa la mitad derecha */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding: 1rem;
+}
+
+/* Botón Atrás */
+.btn-atras {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: #64b5f6; /* Azul claro */
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-atras:hover {
+    background-color: #42a5f5; /* Azul más oscuro */
+}
+
+/* Hero (h1 y p) */
+.hero {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.hero h1 {
+    font-size: 2rem;
+    color: #0277bd; /* Azul científico */
+}
+
+.hero p {
+    font-size: 1.25rem;
+    color: #455a64; /* Gris oscuro */
+}
+
+/* Botones (container-btn) */
+.container-btn {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Dos columnas */
+    gap: 1rem; /* Espaciado entre botones */
+    justify-items: center;
+    width: 100%;
+    margin-top: 2rem;
+}
+
+.container-btn .btn {
+    background-color: #64b5f6;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.container-btn .btn:hover {
+    background-color: #42a5f5;
+}
+
+/* Botón IR */
+.btn-ir {
+    margin-top: 2rem;
+    background-color: #81c784; /* Verde claro */
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-ir:hover {
+    background-color: #66bb6a; /* Verde más oscuro */
+}
