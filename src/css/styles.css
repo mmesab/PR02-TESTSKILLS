@@ -82,3 +82,18 @@ body{
     background-color: #0056b3;
 }
 
+/* Fuerza a que el botón activo tenga siempre el fondo e interactividad del botón sólido */
+.opciones-container .btn-primary, 
+.question.btn-primary {
+    background-color: #0d6efd !important; /* El azul primario de Bootstrap */
+    color: #fff !important;
+    border-color: #0d6efd !important;
+    box-shadow: none !important; /* Elimina sombras de foco raras del navegador */
+}
+
+/* Evita que al perder el cursor se quede un color "fantasma" */
+.question.btn-outline-primary:focus {
+    background-color: transparent !important;
+    color: #0d6efd !important;
+    box-shadow: none !important;
+}

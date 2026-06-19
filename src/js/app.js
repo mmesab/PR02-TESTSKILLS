@@ -4,24 +4,19 @@ const preguntaTexto = document.getElementById("pregunta-texto");
 const opcionesContainer = document.getElementById("opciones-container");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
+const salirBtn = document.getElementById("salirBtn"); // <- Añadido
 const progressBar = document.getElementById("progress-bar"); 
 const errorMensaje = document.getElementById("error-mensaje"); 
 
-// 2. ESTADO DE LA APLICACIÓN (¡ACTUALIZADO CON NIVEL 11!)
-// Intentamos recuperar las respuestas anteriores del LocalStorage. Si no hay nada, empezamos con un array vacío.
 let answers = JSON.parse(localStorage.getItem("nexus_answers_progress")) || [];
-
-// Si el usuario ya tenía respuestas guardadas, lo situamos en la siguiente pregunta disponible.
-// Por ejemplo, si respondió 3 preguntas (índices 0, 1, 2), su longitud es 3, así que currentIndex pasará a ser 3 (la cuarta pregunta).
 let currentIndex = answers.length; 
 
-// Control de seguridad: Si ya había completado todo el test, lo reiniciamos a la primera pregunta para que no falle.
 if (currentIndex >= questions.length) {
     currentIndex = 0;
     answers = [];
 }
 
-// Mapeo de dimensiones a nombres legibles para los títulos
+// 2. ESTADO DE LA APLICACIÓN
 const nombresFases = {
     "MotivInter": "Fase 1: Motivación Interna",
     "RelacionEntorno": "Fase 2: Relación con el Entorno",
@@ -31,21 +26,21 @@ const nombresFases = {
 };
 
 // 3. FUNCIÓN PARA PINTAR LA PREGUNTA ACTUAL
-function renderQuestion() {
-    // Ocultamos el mensaje de error anterior si existía
+function renderQuestion() { 
+    // Ocultar mensaje de error
     if (errorMensaje) {
         errorMensaje.style.display = "none";
         errorMensaje.textContent = "";
     }
 
-    // Obtener la pregunta actual del array general
+    // Obtener pregunta actual de array
     const currentQuestion = questions[currentIndex];
 
-    // Actualizar textos en el HTML
+    // Actualizar textos en HTML
     faseTitulo.textContent = nombresFases[currentQuestion.dimension] || "Test Psicométrico";
     preguntaTexto.textContent = `Pregunta ${currentIndex + 1}: ${currentQuestion.text}`;
 
-    // Calculamos el porcentaje y movemos la barra cada vez que se pinta una pregunta
+    // Calcular y mover barra progreso en cada pregunta
     const porcentaje = ((currentIndex + 1) / questions.length) * 100;
     if (progressBar) {
         progressBar.style.width = `${porcentaje}%`;
@@ -54,20 +49,26 @@ function renderQuestion() {
     // Limpiar botones de opciones anteriores
     opcionesContainer.innerHTML = "";
 
-    // Generar la escala del 1 al 5 como botones
+    // Generar escala de 1 al 5 con botones
     for (let i = 1; i <= 5; i++) {
         const button = document.createElement("button");
-        button.className = "question btn btn-outline-primary me-2"; 
+        button.className = "question btn btn-outline-primary"; 
         button.textContent = i;
 
-        // Si el usuario ya había respondido esta pregunta antes, dejamos el botón marcado
+        // Si ya se ha respondido antes, dejamos el botón marcado
         const yaRespondida = answers.find(a => a.questionId === currentQuestion.id);
         if (yaRespondida && yaRespondida.answer === i) {
             button.classList.replace("btn-outline-primary", "btn-primary");
         }
 
         // Evento al hacer click en una opción numérica
-        button.onclick = () => selectOption(currentQuestion.id, currentQuestion.dimension, i);
+        button.onclick = () => {
+            const todosLosBotones = opcionesContainer.querySelectorAll(".question");
+            todosLosBotones.forEach(btn => btn.classList.replace("btn-primary", "btn-outline-primary"));
+            button.classList.replace("btn-outline-primary", "btn-primary");
+
+            selectOption(currentQuestion.id, currentQuestion.dimension, i);
+        };
         
         opcionesContainer.appendChild(button);
     }
@@ -87,31 +88,41 @@ function renderQuestion() {
     }
 }
 
-// 4. FUNCIÓN PARA GUARDAR LA OPCIÓN SELECCIONADA
-function selectOption(questionId, dimension, value) {
-    const existingAnswerIndex = answers.findIndex(a => a.questionId === questionId);
+    // 4. FUNCIÓN PARA GUARDAR LA OPCIÓN SELECCIONADA (PASO 5)
+        function selectOption(questionId, dimension, value) {
+            // Buscamos si el usuario ya había respondido a esta pregunta antes (por si volvió atrás)
+            const existingAnswerIndex = answers.findIndex(a => a.questionId === questionId);
 
-    if (existingAnswerIndex !== -1) {
-        answers[existingAnswerIndex].answer = value;
-    } else {
-        answers.push({
-            questionId: questionId,
-            answer: value,
-            dimension: dimension
-        });
-    }
+            if (existingAnswerIndex !== -1) {
+                // Si ya existía, actualizamos el valor de su respuesta
+                answers[existingAnswerIndex].answer = value;
+            } else {
+                // Si es la primera vez que la responde, la añadimos al array answers
+                answers.push({
+                    questionId: questionId,
+                    answer: value,
+                    dimension: dimension
+                });
+            }
 
-    // ¡NUEVO NIVEL 11! Guardamos el progreso en tiempo real en el LocalStorage cada vez que elige una opción
-    localStorage.setItem("nexus_answers_progress", JSON.stringify(answers));
+            // Guardamos el estado actual en el LocalStorage para que no se pierda si se recarga la página
+            localStorage.setItem("nexus_answers_progress", JSON.stringify(answers));
 
-    // Volvemos a renderizar para actualizar el color de los botones
-    renderQuestion();
-}
+            // --- MEJORA DE FLUJO ---
+            // En lugar de solo refrescar la pantalla, comprobamos si quedan más preguntas:
+            if (currentIndex < questions.length - 1) {
+                // Avanzamos automáticamente a la siguiente pregunta
+                currentIndex++;
+                renderQuestion();
+            } else {
+                // Si era la última pregunta, finalizamos el test directamente
+                finishTest();
+            }
+        }
 
-// 5. MANEJO DE EVENTOS DE NAVEGACIÓN (Botones Volver / Siguiente)
+// 5. MANEJO DE EVENTOS DE NAVEGACIÓN
 nextBtn.onclick = () => {
     const currentQuestion = questions[currentIndex];
-    // Validación: Comprobar si ha respondido antes de avanzar
     const haRespondido = answers.some(a => a.questionId === currentQuestion.id);
 
     if (!haRespondido) {
@@ -137,28 +148,33 @@ prevBtn.onclick = () => {
     }
 };
 
+// Evento para el botón Salir
+if (salirBtn) {
+    salirBtn.onclick = () => {
+        const confirmar = confirm("¿Estás seguro de que deseas salir? Se perderá todo tu progreso actual.");
+        if (confirmar) {
+            localStorage.removeItem("nexus_answers_progress");
+            location.reload();
+        }
+    };
+}
+
 // 6. FINALIZAR TEST Y MOSTRAR RESULTADOS
 function finishTest() {
-    // Guardamos las respuestas definitivas en un almacén histórico
     localStorage.setItem("nexus_final_results", JSON.stringify(answers));
-    
-    // ¡NUEVO NIVEL 11! Como el test ya ha terminado, borramos el progreso temporal para que la próxima vez empiece desde cero
     localStorage.removeItem("nexus_answers_progress");
 
-    // Calcular puntuaciones utilizando las lógicas del manual
     let totalScore = 0;
     let dimensionsScore = {};
 
     answers.forEach(item => {
         totalScore += item.answer; 
-
         if (!dimensionsScore[item.dimension]) {
             dimensionsScore[item.dimension] = 0;
         }
         dimensionsScore[item.dimension] += item.answer;
     });
 
-    // Cambiar la vista de la pantalla para mostrar los resultados de forma limpia
     document.querySelector(".container").innerHTML = `
         <div class="text-center p-5">
             <h1 class="text-success mb-4">¡Test Completado!</h1>
@@ -185,7 +201,7 @@ function finishTest() {
             <button class="btn btn-warning mt-4" onclick="location.reload()">Repetir Test</button>
         </div>
     `;
-}
+} // <- Aquí se cierra correctamente finishTest
 
 // 7. INICIALIZAR LA APP AL CARGAR LA PÁGINA
 renderQuestion();
