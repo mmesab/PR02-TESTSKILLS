@@ -1,75 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IdentityMap Nexus 2026</title>
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <!-- Estilos Personalizados Nexus -->
     <link rel="stylesheet" href="src/css/styles.css">
-    <!-- FAVICON - ICONO PARA PESTAÑAS EN NAVEGADOR -->
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="src/assets/img/LogoNexusMinimal.png">
 </head>
 
 <body>
-    <nav>
-        <nav class="navbar bg-body-tertiary">
-            <div class="container">
-                <!-- LOGOTIPO / INICIO -->
-                <a class="navbar-brand" href="#">
-                    <img src="./src/assets/img/LogoNexus.png" alt="Logo" width="70vh" height="70vh" class="d-inline-block align-text-top">
-                </a>
-
-                <!-- BARRA DE PROGRESO -->
-                <div class="progress w-50" role="progressbar" aria-label="Progreso del test">
-                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
-                </div>
-
-                <!-- BOTÓN DE SALIR -->
-                <button id="salirBtn" class="btn btn-primary" type="button">Salir</button>
-
-
+    <!-- PANTALLA PRINCIPAL DEL TEST -->
+    <main id="assessment-screen" class="screen active">
+        <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
+        <nav class="ass-nav">
+            <div class="ass-logo-wrap">
+                <img src="./src/assets/img/LogoNexus.png" alt="Logo Nexus" width="45" height="45">
+                <span class="ass-logo-text">IdentityMap <em>Nexus</em></span>
             </div>
+
+            <!-- CONTENEDOR DE LA BARRA DE PROGRESO -->
+            <div class="prog-wrap">
+                <div class="prog-labels">
+                    <span>Progreso del Test</span>
+                    <span id="progreso-texto">0%</span>
+                </div>
+                <div class="prog-track">
+                    <div id="progress-bar" class="prog-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- FASE ACTUAL -->
+            <span id="fase-badge" class="ass-phase-badge">Fase 1</span>
+
+            <button id="salirBtn" class="btn-restart" type="button">Salir</button>
         </nav>
-    </nav>
-        <section>
-            <div class="container">
+
+        <!-- CUERPO CENTRAL DE PREGUNTAS -->
+        <section class="ass-body">
+            <div class="q-card">
+                <div class="q-top">
+                    <span id="fase-titulo" class="q-dim-tag">Cargando Fase...</span>
+                    <span id="pregunta-numero" class="q-num-tag">Pregunta 0/25</span>
+                </div>
                 
-                <!-- INICIO AL TEST -->
-                <h1 id="fase-titulo" class="titulo">Cargando Fase...</h1>
+                <h2 id="pregunta-texto" class="q-text">Cargando pregunta...</h2>
                 
-                <div class="row">
-                    <div class="">
-                        <p id="pregunta-texto" class="subtitulo">Cargando pregunta...</p>
-                    </div>
+                <!-- Escenario opcional por si decides añadir descripciones complejas -->
+                <div class="q-scenario">
+                    <div class="q-scenario-label">Contexto del Entorno</div>
+                    <p>Evalúa con honestidad tu reacción innata ante la siguiente situación.</p>
                 </div>
 
-                <div class="row">
-                    <div id="opciones-container" class="opciones col-12"></div>
-                </div>
+                <!-- CONTENEDOR DONDE JAVASCRIPT INYECTARÁ LAS OPCIONES A, B, C, D -->
+                <div id="opciones-container" class="opts-abcd"></div>
 
-                <div class="row">
-                    <div id="opciones-container" class="opciones col-12"></div>
+                <!-- MENSAGE DE ERROR SI INTENTAN AVANZAR SIN SELECCIONAR -->
+                <div id="error-mensaje" class="alert alert-danger mt-3 py-2 text-center fw-bold" style="display: none; font-size: 13px;"></div>
 
-                    <div id="error-mensaje" class="text-center text-danger mt-3 fw-bold" style="display: none;"></div>
-                </div>
-
-                <div class="buttons d-flex justify-content-center gap-3">
-                        <button id="prevBtn" class="btn btn-primary">Volver</button>
-                        <button id="nextBtn" class="btn btn-primary">Siguiente pregunta</button>
+                <!-- BOTONES DE NAVEGACIÓN INFERIOR -->
+                <div class="q-foot">
+                    <button id="prevBtn" class="btn-q-back">← Volver</button>
+                    <button id="nextBtn" class="btn-q-next">Siguiente pregunta →</button>
                 </div>
             </div>
-    </section>
+        </section>
+    </main>
 
+    <!-- PANTALLA INTERMEDIA DE PROCESAMIENTO (PANTALLA DE CARGA DEL MOTOR) -->
+    <div id="analyzing">
+        <div class="anl-wrap">
+            <div class="anl-ring">
+                <svg width="110" height="110" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.08)" stroke-width="6" fill="none"/>
+                    <circle cx="50" cy="50" r="40" stroke="#f97316" stroke-width="6" fill="none" stroke-dasharray="180" stroke-linecap="round"/>
+                </svg>
+                <div class="anl-icon">🧬</div>
+            </div>
+            <h2 class="anl-h">Construyendo tu Mapa de Identidad</h2>
+            <p class="anl-sub">El motor psicométrico Nexus está procesando tus respuestas...</p>
+            
+            <div class="anl-steps">
+                <div id="step-1" class="anl-step"><div class="anl-dot"></div><span class="anl-step-txt">Compilando respuestas vectoriales...</span></div>
+                <div id="step-2" class="anl-step"><div class="anl-dot"></div><span class="anl-step-txt">Calculando balance de dimensiones...</span></div>
+                <div id="step-3" class="anl-step"><div class="anl-dot"></div><span class="anl-step-txt">Generando arquetipo definitivo...</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE RESULTADOS FINALES -->
+    <main id="results" class="screen">
+        <nav class="res-nav">
+            <span class="res-logo-text">IdentityMap <em>Dashboard</em></span>
+            <button class="btn-restart" onclick="location.reload()">Repetir Evaluación</button>
+        </nav>
+        <!-- Aquí inyectaremos dinámicamente todo el reporte con las tarjetas de styles.css -->
+        <div id="resBody" class="res-body"></div>
+    </main>
+
+    <!-- Librería Chart.js para los gráficos del Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-
+    <!-- Scripts de la Aplicación -->
     <script src="src/js/questions.js"></script>
-
     <script src="src/js/app.js"></script>
 </body>
 

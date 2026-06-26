@@ -1,207 +1,381 @@
-// 1. SELECCIÓN DE ELEMENTOS DEL DOM
-const faseTitulo = document.getElementById("fase-titulo");
-const preguntaTexto = document.getElementById("pregunta-texto");
-const opcionesContainer = document.getElementById("opciones-container");
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
-const salirBtn = document.getElementById("salirBtn"); // <- Añadido
-const progressBar = document.getElementById("progress-bar"); 
-const errorMensaje = document.getElementById("error-mensaje"); 
+// app.js - Motor Psicométrico e Interfaz de Usuario para IdentityMap Nexus
 
-let answers = JSON.parse(localStorage.getItem("nexus_answers_progress")) || [];
-let currentIndex = answers.length; 
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Estado Global de la Aplicación
+    let currentIndex = 0;
+    let answers = [];
 
-if (currentIndex >= questions.length) {
-    currentIndex = 0;
-    answers = [];
-}
+    // Mapeo amigable de las dimensiones para los textos de la interfaz
+    const dimensionLabels = {
+        "MotivInter": "Fase 1: Motivación Interna",
+        "RelacionEntorno": "Fase 2: Relación con el Entorno",
+        "EstresAdaptacion": "Fase 3: Estrés y Adaptación",
+        "RelPersonales": "Fase 4: Relaciones Personales",
+        "TrabajoObjetivos": "Fase 5: Trabajo y Objetivos"
+    };
 
-// 2. ESTADO DE LA APLICACIÓN
-const nombresFases = {
-    "MotivInter": "Fase 1: Motivación Interna",
-    "RelacionEntorno": "Fase 2: Relación con el Entorno",
-    "EstresAdaptacion": "Fase 3: Estrés y Adaptación",
-    "RelPersonales": "Fase 4: Relaciones Personales",
-    "TrabajoObjetivos": "Fase 5: Trabajo y Objetivos"
-};
+    // 2. Selectores de la Interfaz (DOM)
+    const assessmentScreen = document.getElementById("assessment-screen");
+    const analyzingScreen = document.getElementById("analyzing");
+    const resultsScreen = document.getElementById("results");
 
-// 3. FUNCIÓN PARA PINTAR LA PREGUNTA ACTUAL
-function renderQuestion() { 
-    // Ocultar mensaje de error
-    if (errorMensaje) {
+    const preguntaTexto = document.getElementById("pregunta-texto");
+    const preguntaNumero = document.getElementById("pregunta-numero");
+    const faseTitulo = document.getElementById("fase-titulo");
+    const faseBadge = document.getElementById("fase-badge");
+    const opcionesContainer = document.getElementById("opciones-container");
+    const errorMensaje = document.getElementById("error-mensaje");
+    const progressBar = document.getElementById("progress-bar");
+    const progresoTexto = document.getElementById("progreso-texto");
+
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const salirBtn = document.getElementById("salirBtn");
+    const resBody = document.getElementById("resBody");
+
+    // 3. Inicialización del Test
+    function init() {
+        // Intentar recuperar el progreso guardado del almacenamiento local
+        const savedAnswers = localStorage.getItem("nexus_answers_progress");
+        const savedIndex = localStorage.getItem("nexus_current_index");
+
+        if (savedAnswers) {
+            answers = JSON.parse(savedAnswers);
+        } else {
+            // Inicializar array vacío para las 25 preguntas
+            answers = new Array(questions.length).fill(null);
+        }
+
+        if (savedIndex) {
+            currentIndex = parseInt(savedIndex, 10);
+            // Asegurar límites por seguridad si cambiaron las preguntas
+            if (currentIndex >= questions.length) currentIndex = 0;
+        }
+
+        renderQuestion();
+    }
+
+    // 4. Renderizado de la Pregunta Actual
+    function renderQuestion() {
+        if (currentIndex >= questions.length) {
+            initiateAnalysisFlow();
+            return;
+        }
+
+        const currentQuestion = questions[currentIndex];
+
+        // Ocultar mensajes de alerta previos
         errorMensaje.style.display = "none";
-        errorMensaje.textContent = "";
-    }
 
-    // Obtener pregunta actual de array
-    const currentQuestion = questions[currentIndex];
-
-    // Actualizar textos en HTML
-    faseTitulo.textContent = nombresFases[currentQuestion.dimension] || "Test Psicométrico";
-    preguntaTexto.textContent = `Pregunta ${currentIndex + 1}: ${currentQuestion.text}`;
-
-    // Calcular y mover barra progreso en cada pregunta
-    const porcentaje = ((currentIndex + 1) / questions.length) * 100;
-    if (progressBar) {
-        progressBar.style.width = `${porcentaje}%`;
-    }
-
-    // Limpiar botones de opciones anteriores
-    opcionesContainer.innerHTML = "";
-
-    // Generar escala de 1 al 5 con botones
-    for (let i = 1; i <= 5; i++) {
-        const button = document.createElement("button");
-        button.className = "question btn btn-outline-primary"; 
-        button.textContent = i;
-
-        // Si ya se ha respondido antes, dejamos el botón marcado
-        const yaRespondida = answers.find(a => a.questionId === currentQuestion.id);
-        if (yaRespondida && yaRespondida.answer === i) {
-            button.classList.replace("btn-outline-primary", "btn-primary");
-        }
-
-        // Evento al hacer click en una opción numérica
-        button.onclick = () => {
-            const todosLosBotones = opcionesContainer.querySelectorAll(".question");
-            todosLosBotones.forEach(btn => btn.classList.replace("btn-primary", "btn-outline-primary"));
-            button.classList.replace("btn-outline-primary", "btn-primary");
-
-            selectOption(currentQuestion.id, currentQuestion.dimension, i);
-        };
+        // Inyectar textos básicos
+        preguntaTexto.textContent = currentQuestion.text;
+        preguntaNumero.textContent = `Pregunta ${currentIndex + 1} de ${questions.length}`;
         
-        opcionesContainer.appendChild(button);
-    }
+        const labelDimension = dimensionLabels[currentQuestion.dimension] || currentQuestion.dimension;
+        faseTitulo.textContent = labelDimension;
+        faseBadge.textContent = `Fase ${Math.floor(currentIndex / 5) + 1}`;
 
-    // Controlar visibilidad del botón "Volver"
-    if (currentIndex === 0) {
-        prevBtn.style.visibility = "hidden"; 
-    } else {
-        prevBtn.style.visibility = "visible";
-    }
+        // Calcular y actualizar barras de progreso visuales
+        const porcentajeProgreso = Math.round((currentIndex / questions.length) * 100);
+        progressBar.style.width = `${porcentajeProgreso}%`;
+        progresoTexto.textContent = `${porcentajeProgreso}%`;
 
-    // Cambiar el texto del botón final si es la última pregunta
-    if (currentIndex === questions.length - 1) {
-        nextBtn.textContent = "Finalizar Test";
-    } else {
-        nextBtn.textContent = "Siguiente pregunta";
-    }
-}
-
-    // 4. FUNCIÓN PARA GUARDAR LA OPCIÓN SELECCIONADA (PASO 5)
-        function selectOption(questionId, dimension, value) {
-            // Buscamos si el usuario ya había respondido a esta pregunta antes (por si volvió atrás)
-            const existingAnswerIndex = answers.findIndex(a => a.questionId === questionId);
-
-            if (existingAnswerIndex !== -1) {
-                // Si ya existía, actualizamos el valor de su respuesta
-                answers[existingAnswerIndex].answer = value;
-            } else {
-                // Si es la primera vez que la responde, la añadimos al array answers
-                answers.push({
-                    questionId: questionId,
-                    answer: value,
-                    dimension: dimension
-                });
-            }
-
-            // Guardamos el estado actual en el LocalStorage para que no se pierda si se recarga la página
-            localStorage.setItem("nexus_answers_progress", JSON.stringify(answers));
-
-            // --- MEJORA DE FLUJO ---
-            // En lugar de solo refrescar la pantalla, comprobamos si quedan más preguntas:
-            if (currentIndex < questions.length - 1) {
-                // Avanzamos automáticamente a la siguiente pregunta
-                currentIndex++;
-                renderQuestion();
-            } else {
-                // Si era la última pregunta, finalizamos el test directamente
-                finishTest();
-            }
+        // Control de visibilidad del botón 'Volver'
+        if (currentIndex === 0) {
+            prevBtn.style.visibility = "hidden";
+        } else {
+            prevBtn.style.visibility = "visible";
         }
 
-// 5. MANEJO DE EVENTOS DE NAVEGACIÓN
-nextBtn.onclick = () => {
-    const currentQuestion = questions[currentIndex];
-    const haRespondido = answers.some(a => a.questionId === currentQuestion.id);
-
-    if (!haRespondido) {
-        if (errorMensaje) {
-            errorMensaje.textContent = "⚠️ ¡Atención! Debes seleccionar una opción del 1 al 5 antes de avanzar.";
-            errorMensaje.style.display = "block"; 
+        // Cambiar el texto del botón de avance si es la pregunta definitiva
+        if (currentIndex === questions.length - 1) {
+            nextBtn.textContent = "Finalizar Evaluación ✓";
+        } else {
+            nextBtn.textContent = "Siguiente pregunta →";
         }
-        return; 
+
+        // Limpiar y renderizar el contenedor de opciones A, B, C, D
+        opcionesContainer.innerHTML = "";
+
+        currentQuestion.options.forEach((opcion, index) => {
+            const letter = String.fromCharCode(65 + index); // A, B, C, D
+            
+            // Crear el botón estructural con los estilos del CSS
+            const optButton = document.createElement("button");
+            optButton.className = "opt-btn";
+            
+            // Verificar si esta opción específica es la seleccionada actualmente por el usuario
+            if (answers[currentIndex] !== null && answers[currentIndex] === opcion.value) {
+                optButton.classList.add("selected");
+            }
+
+            optButton.innerHTML = `
+                <div class="opt-abc">${letter}</div>
+                <div class="opt-txt">${opcion.text}</div>
+            `;
+
+            // Configurar el evento de selección al hacer click
+            optButton.onclick = () => {
+                // Guardar la puntuación en el array de respuestas
+                answers[currentIndex] = opcion.value;
+                localStorage.setItem("nexus_answers_progress", JSON.stringify(answers));
+                
+                // Refrescar visualmente la selección eliminando clases previas
+                document.querySelectorAll(".opt-btn").forEach(btn => btn.classList.remove("selected"));
+                optButton.classList.add("selected");
+                
+                // Pequeño retardo para dar feedback visual antes de pasar automáticamente a la siguiente pregunta
+                setTimeout(() => {
+                    navigateForward();
+                }, 250);
+            };
+
+            opcionesContainer.appendChild(optButton);
+        });
     }
 
-    if (currentIndex < questions.length - 1) {
+    // 5. Lógica de Navegación
+    function navigateForward() {
+        // Validar si el usuario seleccionó una respuesta para la pregunta actual
+        if (answers[currentIndex] === null) {
+            errorMensaje.textContent = "Por favor, selecciona una opción de respuesta antes de avanzar.";
+            errorMensaje.style.display = "block";
+            return;
+        }
+
         currentIndex++;
-        renderQuestion();
-    } else {
-        finishTest();
-    }
-};
-
-prevBtn.onclick = () => {
-    if (currentIndex > 0) {
-        currentIndex--;
+        localStorage.setItem("nexus_current_index", currentIndex);
         renderQuestion();
     }
-};
 
-// Evento para el botón Salir
-if (salirBtn) {
+    function navigateBackward() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            localStorage.setItem("nexus_current_index", currentIndex);
+            renderQuestion();
+        }
+    }
+
+    // 6. Asignación de Eventos de Navegación Manual
+    nextBtn.onclick = navigateForward;
+    prevBtn.onclick = navigateBackward;
+
     salirBtn.onclick = () => {
-        const confirmar = confirm("¿Estás seguro de que deseas salir? Se perderá todo tu progreso actual.");
-        if (confirmar) {
-            localStorage.removeItem("nexus_answers_progress");
+        if (confirm("¿Estás seguro de que deseas salir? Se perderá el progreso de la sesión actual.")) {
+            localStorage.clear();
             location.reload();
         }
     };
-}
 
-// 6. FINALIZAR TEST Y MOSTRAR RESULTADOS
-function finishTest() {
-    localStorage.setItem("nexus_final_results", JSON.stringify(answers));
-    localStorage.removeItem("nexus_answers_progress");
+    // 7. Flujo Intermedio de Procesamiento Animado
+    function initiateAnalysisFlow() {
+        // Cambiar estados de las pantallas principales
+        assessmentScreen.classList.remove("active");
+        analyzingScreen.classList.add("active");
 
-    let totalScore = 0;
-    let dimensionsScore = {};
+        // Simulación secuencial de los pasos de cálculo del motor cuántico/psicométrico
+        setTimeout(() => {
+            document.getElementById("step-1").classList.add("done");
+            setTimeout(() => {
+                document.getElementById("step-2").classList.add("done");
+                setTimeout(() => {
+                    document.getElementById("step-3").classList.add("done");
+                    setTimeout(() => {
+                        // Finalizar análisis y pintar Dashboard de Resultados
+                        analyzingScreen.classList.remove("active");
+                        resultsScreen.classList.add("active");
+                        calculateAndShowResults();
+                    }, 1000);
+                }, 1200);
+            }, 1200);
+        }, 800);
+    }
 
-    answers.forEach(item => {
-        totalScore += item.answer; 
-        if (!dimensionsScore[item.dimension]) {
-            dimensionsScore[item.dimension] = 0;
+    // 8. Procesamiento Estadístico y Renderizado del Dashboard Oficial con Estilos Nexus
+    function calculateAndShowResults() {
+        // Inicializar acumuladores por dimensiones
+        const scores = {
+            "MotivInter": 0,
+            "RelacionEntorno": 0,
+            "EstresAdaptacion": 0,
+            "RelPersonales": 0,
+            "TrabajoObjetivos": 0
+        };
+
+        // Recorrer las respuestas del test y agruparlas
+        questions.forEach((q, i) => {
+            if (answers[i] !== null) {
+                scores[q.dimension] += answers[i];
+            }
+        });
+
+        // Limpiar el LocalStorage al completar el test satisfactoriamente
+        localStorage.clear();
+
+        // Encontrar la dimensión dominante y la de menor puntuación
+        let maxScore = -1;
+        let minScore = 999;
+        let dimensionDominante = "";
+        let dimensionDebil = "";
+
+        for (const [key, val] of Object.entries(scores)) {
+            if (val > maxScore) {
+                maxScore = val;
+                dimensionDominante = key;
+            }
+            if (val < minScore) {
+                minScore = val;
+                dimensionDebil = key;
+            }
         }
-        dimensionsScore[item.dimension] += item.answer;
-    });
 
-    document.querySelector(".container").innerHTML = `
-        <div class="text-center p-5">
-            <h1 class="text-success mb-4">¡Test Completado!</h1>
-            <p class="fs-4">Tu puntuación total es: <strong>${totalScore} puntos</strong></p>
-            <hr>
-            <h3 class="mt-4 mb-3">Desglose por dimensiones:</h3>
-            <ul class="list-group col-md-6 mx-auto text-start">
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>Motivación Interna:</span> <strong>${dimensionsScore["MotivInter"] || 0} pts</strong>
-                </li>
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>Relación con el Entorno:</span> <strong>${dimensionsScore["RelacionEntorno"] || 0} pts</strong>
-                </li>
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>Estrés y Adaptación:</span> <strong>${dimensionsScore["EstresAdaptacion"] || 0} pts</strong>
-                </li>
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>Relaciones Personales:</span> <strong>${dimensionsScore["RelPersonales"] || 0} pts</strong>
-                </li>
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>Trabajo y Objetivos:</span> <strong>${dimensionsScore["TrabajoObjetivos"] || 0} pts</strong>
-                </li>
-            </ul>
-            <button class="btn btn-warning mt-4" onclick="location.reload()">Repetir Test</button>
-        </div>
-    `;
-} // <- Aquí se cierra correctamente finishTest
+        // Definiciones de Arquetipos adaptadas a tu paleta de diseño
+        const arquetipos = {
+            "MotivInter": {
+                titulo: "El Visionario Intrínseco",
+                desc: "Tu motor principal proviene de tu propio mapa interior. Buscas la excelencia, el autodescubrimiento y el conocimiento por encima de las recompensas materiales o la validación externa.",
+                icono: "🧠"
+            },
+            "RelacionEntorno": {
+                titulo: "El Conector Social",
+                desc: "Posees una habilidad innata para leer el entorno, mover los hilos de tus relaciones grupales y adaptarte con maestría a las estructuras cambiantes de tu alrededor.",
+                icono: "🌐"
+            },
+            "EstresAdaptacion": {
+                titulo: "El Pilar Resiliente",
+                desc: "Destacas por tu control bajo fuego. Las crisis e imprevistos activan tu pensamiento crítico, permitiéndote tomar decisiones analíticas o mantener el orden donde otros ven caos.",
+                icono: "🛡️"
+            },
+            "RelPersonales": {
+                titulo: "El Empático Auténtico",
+                desc: "Priorizas los vínculos reales, profundos y de confianza incondicional. Eres un protector de tu círculo cercano y filtras tus interacciones bajo el lente de la lealtad.",
+                icono: "🤝"
+            },
+            "TrabajoObjetivos": {
+                titulo: "El Ejecutor de Alto Rendimiento",
+                desc: "Tu enfoque está en el resultado, la precisión del detalle y la victoria táctica. Diseñas planes rigurosos y buscas dominar tus objetivos con un estándar técnico impecable.",
+                icono: "🎯"
+            }
+        };
 
-// 7. INICIALIZAR LA APP AL CARGAR LA PÁGINA
-renderQuestion();
+        const tuArquetipo = arquetipos[dimensionDominante] || { titulo: "Perfil Dinámico", desc: "Tus puntuaciones muestran un balance integrado.", icono: "🧬" };
+
+        // Construir la estructura utilizando tus clases: .insights-card, .ins-title, .ins-sub, .ins-grid, .ins-block...
+        resBody.innerHTML = `
+            <div class="container py-5 animate-fade-in">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="insights-card h-100">
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <span style="font-size: 32px;">${tuArquetipo.icono}</span>
+                                <div>
+                                    <div class="ins-title">${tuArquetipo.titulo}</div>
+                                    <div class="ins-sub">Vector Motivacional Predominante</div>
+                                </div>
+                            </div>
+                            
+                            <p class="mt-3" style="line-height: 1.6; color: rgba(255,255,255,0.85); font-size: 14px;">
+                                ${tuArquetipo.desc}
+                            </p>
+                            
+                            <div class="ins-grid mt-4">
+                                <div class="ins-block">
+                                    <div class="ins-block-h" style="color: var(--c-primary);">Fuerza Núcleo</div>
+                                    <div class="ins-item">
+                                        <span>🔥</span>
+                                        <span><strong>${dimensionLabels[dimensionDominante].replace("Fase ", "")}:</strong> Maximizada con ${scores[dimensionDominante]} puntos sobre 25.</span>
+                                    </div>
+                                </div>
+                                <div class="ins-block">
+                                    <div class="ins-block-h" style="color: #94a3b8;">Área de Balance</div>
+                                    <div class="ins-item">
+                                        <span>⚡</span>
+                                        <span><strong>${dimensionLabels[dimensionDebil].replace("Fase ", "")}:</strong> Registra el menor índice del vector con ${scores[dimensionDebil]} puntos.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="insights-card h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="ins-title">Mapeo de Identidad Dinámica</div>
+                                <div class="ins-sub">Resultados analíticos por dimensión de comportamiento</div>
+                            </div>
+                            <div style="position: relative; width: 100%; max-width: 380px; margin: 0 auto;" class="py-2">
+                                <canvas id="nexusRadarChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // 9. Configuración del Gráfico de Radar Adaptado a la Paleta Nexus (Naranja y Fuego)
+        const ctx = document.getElementById('nexusRadarChart').getContext('2d');
+        
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Motivación', 'Entorno', 'Resiliencia', 'Relaciones', 'Objetivos'],
+                datasets: [{
+                    label: 'Tu ADN Nexus',
+                    data: [
+                        scores["MotivInter"],
+                        scores["RelacionEntorno"],
+                        scores["EstresAdaptacion"],
+                        scores["RelPersonales"],
+                        scores["TrabajoObjetivos"]
+                    ],
+                    // Colores extraídos de tus variables (--c-primary con opacidad y bordes limpios)
+                    backgroundColor: 'rgba(249, 115, 22, 0.15)', 
+                    borderColor: '#f97316',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#ef4444', 
+                    pointBorderColor: '#ffffff',
+                    pointHoverBackgroundColor: '#ffffff',
+                    pointHoverBorderColor: '#ef4444',
+                    pointRadius: 4,
+                    pointHitRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    r: {
+                        angleLines: {
+                            color: 'rgba(255, 255, 255, 0.08)' 
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.08)' 
+                        },
+                        pointLabels: {
+                            color: 'rgba(255, 255, 255, 0.6)', 
+                            font: {
+                                size: 11,
+                                family: "'Montserrat', sans-serif",
+                                weight: '500'
+                            }
+                        },
+                        ticks: {
+                            display: false, 
+                            maxTicksLimit: 5
+                        },
+                        suggestedMin: 5,
+                        suggestedMax: 25 
+                    }
+                }
+            }
+        });
+    }
+
+    // Arrancar la aplicación inmediatamente al cargar el documento
+    init();
+});
